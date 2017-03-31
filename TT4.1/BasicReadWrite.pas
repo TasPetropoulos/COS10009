@@ -7,18 +7,20 @@ begin
 end;
 
 procedure ReadLinesToTerminal(var myFile: TextFile);
-    var message: String;
+var
+    message: String;
     number: Integer;
 begin
     ReadLn(myFile, message);
     ReadLn(myFile, number);
-    WriteLn('Text is: ', message);
-    WriteLn('Number is: ', number);
+
+    WriteLn('Text is: ', message, ' Number is: ', number);
     ReadLn();
 end;
 
 procedure Main();
-    var myFile: TextFile;
+var
+    myFile: TextFile;
 begin
     AssignFile(myFile, 'mytestfile.dat');
     ReWrite(myFile);
