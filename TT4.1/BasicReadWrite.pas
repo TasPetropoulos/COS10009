@@ -1,36 +1,41 @@
 program BasicReadWrite;
 
-procedure WriteLines(var myFile: TextFile);
-begin
-    WriteLn(myFile, 'this is my test file');
-    WriteLn(myFile, 10);
-end;
-
-procedure ReadLinesToTerminal(var myFile: TextFile);
+procedure PrintArray(count: Integer; input: Array of String);
 var
-    message: String;
-    number: Integer;
+    i: Integer;
 begin
-    ReadLn(myFile, message);
-    ReadLn(myFile, number);
-
-    WriteLn('Text is: ', message, ' Number is: ', number);
-    ReadLn();
+    i := 0;
+    while i < count do
+    begin
+        WriteLn(input[i]);
+        i += 1;
+    end;
 end;
 
 procedure Main();
 var
     myFile: TextFile;
+    i, numberOfLines: Integer;
+    lineArray: array [0..10] of String;
 begin
-    AssignFile(myFile, 'mytestfile.dat');
-    ReWrite(myFile);
-    WriteLines(myFile);
-    Close(myFile);
+    WriteLn('The file contained:');
 
     AssignFile(myFile, 'mytestfile.dat');
-    Reset(myFile);
-    ReadLinesToTerminal(myFile);
-    Close(myFile);
+    reset(myFile);
+    ReadLn(myFile, numberOfLines);
+
+    i := 0;
+    while i < numberOfLines do
+    begin
+        ReadLn(myFile, lineArray[i]);
+        i += 1;
+    end;
+    CloseFile(myFile);
+
+    PrintArray(numberOfLines, lineArray);
+
+    WriteLn('Press Enter to continue.');
+    ReadLn();
 end;
 
 begin
