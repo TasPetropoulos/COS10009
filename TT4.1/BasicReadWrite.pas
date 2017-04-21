@@ -23,6 +23,7 @@ begin
     AssignFile(myFile, 'mytestfile.dat');
     reset(myFile);
     ReadLn(myFile, numberOfLines);
+    ReadLn(myFile, linenumbercount);
 
     i := 0;
     while i < numberOfLines do
