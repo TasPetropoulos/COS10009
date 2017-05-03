@@ -27,7 +27,7 @@ type
     FoodHunterData = record
         score: Integer;   // The score +1 for target food -1 for others
         hunter: HunterData;  // There is one hunter
-        food: FoodData;   // There is an array of food
+        food: array of FoodData;   // There is an array of food
         time: Timer;   // Keeps track to time
     end;
 
@@ -95,7 +95,7 @@ begin
     result.y := Rnd(ScreenHeight() - BitmapHeight(result.bmp));
 
     result.dx := Round(Rnd() * 4 - 2); // -2 to +2
-    result.dy := 0; // -2 to +2
+    result.dy := Round(Rnd() * 4 - 2); // -2 to +2
 end;
 
 // Draw the food to the screen
@@ -129,7 +129,8 @@ begin
     DrawText('Score: ' + IntToStr(game.score), ColorBlack, 0, 0);
     DrawHunter(game.hunter);
 
-    DrawFood(game.food);
+    for i := 0 to High(game.food) do
+        DrawFood(game.food[i]);
 
     RefreshScreen(60);
 end;
@@ -141,18 +142,22 @@ end;
 procedure WrapCharacter(bmp: Bitmap; var x, y: Integer);
 begin
     if x < -BitmapWidth(bmp) then //offscreen left
-begin
-    x := ScreenWidth();
-end
-else if x > ScreenWidth() then //offscreen right
-begin
-    x := -BitmapWidth(bmp);
-end;
+    begin
+        x := ScreenWidth();
+    end
+    else if x > ScreenWidth() then //offscreen right
+    begin
+        x := -BitmapWidth(bmp);
+    end;
 
-if y < -BitmapHeight(bmp) then //offscreen top
-begin
-    y := ScreenHeight();
-end;
+    if y < -BitmapHeight(bmp) then //offscreen top
+    begin
+        y := ScreenHeight();
+    end
+    else if y > ScreenHeight() then //offscreen bottom
+    begin
+        y := -BitmapHeight(bmp);
+    end;
 end;
 
 // Update the passed in food item
@@ -194,8 +199,11 @@ procedure UpdateGame(var game: FoodHunterData);
 var
     i: Integer;
 begin
-    UpdateFood(game.food);
-    CheckFoodCollision(game.food, game.hunter, game.score);
+    for i := 0 to High(game.food) do
+    begin
+        UpdateFood(game.food[i]);
+        CheckFoodCollision(game.food[i], game.hunter, game.score);
+    end;
 
     if TimerTicks(game.time) > 5000 then
     begin
@@ -213,6 +221,8 @@ begin
     if KeyDown(RightKey) then game.hunter.x += SPEED;
     if KeyDown(UpKey) then game.hunter.y -= SPEED;
     if KeyDown(DownKey) then game.hunter.y += SPEED;
+
+    WrapCharacter(game.hunter.bmp, game.hunter.x, game.hunter.y);
 end;
 
 //
@@ -222,7 +232,10 @@ procedure SetupFood(var game: FoodHunterData; numFood: Integer);
 var
     i: Integer;
 begin
-    game.food := RandomFood();
+    SetLength(game.food, numFood);
+
+    for i := 0 to High(game.food) do
+        game.food[i] := RandomFood();
 end;
 
 //
