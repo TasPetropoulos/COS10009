@@ -22,8 +22,24 @@ begin
     result := '';
     for i := 0 to (length(Arr) - 1) do
     begin
-        result += Arr[i];
-        result += ' '
+        result += Arr[i] + ' ';
+    end;
+end;
+
+// }}}
+
+// Underline {{{
+// Create an underline the length of $1.
+
+function underline(var title: String): String;
+var
+    i: Integer;
+begin
+    result := '';
+
+    for i := 0 to Length(title) do
+    begin
+        result += '-';
     end;
 end;
 
@@ -89,6 +105,7 @@ begin
     ClrScr;
     WriteLn('Imported music file: ', afile);
     WriteLn('Press enter to go back to the menu.');
+    ReadLn();
 
     CloseFile(albumFile);
 end;
@@ -169,21 +186,35 @@ end;
 
 procedure UpdateAlbum(var albums: Albums);
 var
-    selection: Integer;
+    album, field, exit: Integer;
 begin
+    // Int for exit.
+    exit := Length(Albums) + 1;
+
     WriteAllAlbums(Albums);
-    selection := ReadIntegerRange('Select an Album to update: ', 1, Length(Albums));
+    WriteLn(exit, ': Back to Menu');
 
-    WriteLn('Update ', albums[selection - 1].title, ' information:');
-    WriteLn('------');
-    WriteLn('1. Update Title');
-    WriteLn('2. Update Artist');
-    WriteLn('3. Update Genre');
+    album := ReadIntegerRange('Select an Album to update: ', 1, exit);
 
-    case selection of
-        1: ;
-        2: ;
-        3: ;
+    if (album <> exit) then
+    begin
+        ClrScr;
+
+        WriteLn('Update ', albums[album - 1].title, ' information:');
+        WriteLn('------', underline(albums[album - 1].title), '-------------');
+        WriteLn('1. Update Title');
+        WriteLn('2. Update Artist');
+        WriteLn('3. Update Genre');
+        WriteLn('4. Back to Menu');
+
+        field := ReadIntegerRange('Select a field to update: ', 1, 4);
+
+        case field of
+            1: albums[album - 1].title := ReadString('Please enter a new Title: ');
+            2: albums[album - 1].artist := ReadString('Please enter a new Artist: ');
+            3: albums[album - 1].genre := ReadGenre('Please enter a new Genre: ');
+            4: UpdateAlbum(Albums);
+        end;
     end;
 end;
 
@@ -216,7 +247,9 @@ begin
             5: Exit;
         end;
 
-        ReadLn();
+        // Wait for input if '2' is selected.
+        if (selection = 2) then ReadLn();
+
         ClrScr;
     until selection = 5;
 end;
