@@ -40,10 +40,6 @@ var
     selection: Integer;
     a: Album;
 begin
-    selection := ReadIntegerRange('Select a genre (1 - 3): ', 1, 3);
-    a.genre := Genres(selection -1);
-    Writeln(' You selected: ', a.genre);
-
     a := ReadAlbum();
     WriteAlbum(a);
 end;

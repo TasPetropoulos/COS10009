@@ -14,8 +14,8 @@ void file_to_array(int num_lines, char* file_content[128], FILE *file_ptr) {
 }
 
 void print_array(int num_lines, char* file_content[128]) {
-    for (int j = 0; j < num_lines; j++) {
-        printf("The file contained: %s", file_content[j]);
+    for (int i = 0; i < num_lines; i++) {
+        printf("The file contained: %s", file_content[i]);
     }
 }
 
