@@ -8,7 +8,7 @@ void file_to_array(FILE *file_ptr, char* file_content[128]) {
     char line[128];
     int i = 0;
 
-    while (fgets(line, sizeof(line), file_ptr) != NULL && i < 50) {
+    while (fgets(line, sizeof(line), file_ptr) != NULL && i < 128) {
         file_content[i++] = strdup(line);
     }
 }
