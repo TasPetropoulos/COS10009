@@ -4,11 +4,11 @@
 #include <string.h>
 #include "terminal_user_input.h"
 
-void file_to_array(FILE *file_ptr, char* file_content[128]) {
+void file_to_array(int num_lines, char* file_content[128], FILE *file_ptr) {
     char line[128];
     int i = 0;
 
-    while (fgets(line, sizeof(line), file_ptr) != NULL && i < 128) {
+    while (fgets(line, sizeof(line), file_ptr) != NULL && i != num_lines) {
         file_content[i++] = strdup(line);
     }
 }
@@ -30,7 +30,7 @@ int main() {
     else {
         fscanf(file_ptr, "%d\n", &num_lines);
 
-        file_to_array(file_ptr, file_content);
+        file_to_array(num_lines, file_content, file_ptr);
         print_array(num_lines, file_content);
     }
 
