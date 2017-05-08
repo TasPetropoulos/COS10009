@@ -1,19 +1,19 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "terminal_user_input.h"
 
-enum genres {Rock, Pop, Jazz, Rap, Folk} genres;
-
 struct Album {
-    my_string title;
-    my_string artist;
-    enum genres genre;
-    int tracks;
-    my_string tracklist[20];
-    my_string trackpath[20];
+    char title[30];
+    char artist[30];
+    char tracklist[30][20];
+    char trackpath[30][20];
+    int tracks, genre;
 } album;
 
 struct Album albums[20];
+int album_no = 0;
+FILE *afile;
 
 
 // Misc Functions {{{
@@ -58,28 +58,24 @@ char * get_genre_name(int genre) {
     return genre_name;
 }
 
-enum genres read_genre() {
-    int selection;
-
+int read_genre() {
     printf("Genres:\n");
     printf("  1. Rock\n");
     printf("  2. Pop\n");
     printf("  3. Jazz\n");
     printf("  4. Rap\n");
     printf("  5. Folk\n");
-    selection = read_integer_range("Select a genre (1 - 5): ", 1, 5);
 
-    return selection;
+    int genre = read_integer_range("Select a genre (1 - 5): ", 1, 5);
+    return genre;
 }
 
 // }}}
 
 // Read Albums {{{
 
-void read_all_albums(struct Album albums[20]) {
+void read_all_albums() {
     my_string ufile;
-    FILE *afile;
-    int album_no;
 
     do {
         ufile = read_string("Please enter a valid album file: ");
@@ -87,22 +83,23 @@ void read_all_albums(struct Album albums[20]) {
     } while (afile == NULL);
 
     fscanf(afile, "%d\n", &album_no);
-    printf("%d\n", album_no);
 
     for (int i = 0; i < album_no; ++i) {
-        fscanf(afile, "%[^\n]s\n", albums[i].title.str);
-        fscanf(afile, "%[^\n]s\n", albums[i].artist.str);
-        fscanf(afile, "%[^\n]s\n", albums[i].genre);
-        fscanf(afile, "%d\n", albums[i].tracks);
+        fscanf(afile, "%[^\n]\n", albums[i].title);
+        fscanf(afile, "%[^\n]\n", albums[i].artist);
+        fscanf(afile, "%d\n",     &albums[i].genre);
+        fscanf(afile, "%d\n",     &albums[i].tracks);
 
-        for (int j = 0;j < (albums[i].tracks - 1); ++j) {
-            fscanf(afile, "%[^\n]s\n", albums[i].tracklist[j].str);
-            fscanf(afile, "%[^\n]s\n", albums[i].trackpath[j].str);
+        for (int j = 0; j < albums[i].tracks; ++j) {
+            fscanf(afile, "%[^\n]\n", albums[i].tracklist[j]);
+            fscanf(afile, "%[^\n]\n", albums[i].trackpath[j]);
         }
     }
 
-    printf("%s\n", albums[0].title.str);
-    printf("%s\n", albums[1].title.str);
+    fclose(afile);
+    clear_screen();
+    printf("Successfully imported %d albums!\n", album_no);
+    printf("Press enter to go back to the menu: ");
     getchar();
 }
 
@@ -110,44 +107,125 @@ void read_all_albums(struct Album albums[20]) {
 
 // Write Albums {{{
 
-void write_album_menu(struct Album a) {
-    printf("%s - %s - %s - %d Tracks\n", a.title.str, a.artist.str, a.genre, a.tracks);
-}
-
 void write_album(struct Album a) {
-    printf("Title: %s", a.title.str);
-    printf("Artist: %s", a.artist.str);
-    printf("Genre: %s", a.genre);
-    printf("Tracks: %d", a.tracks);
+    printf("Title: %s\n", a.title);
+    printf("Artist: %s\n", a.artist);
+    printf("Genre: %s\n", get_genre_name(a.genre));
+    printf("Tracks: %d\n", a.tracks);
 
     for (int i = 0; i < (a.tracks - 1); ++i) {
-        printf("Track %d: %s", i+1, a.tracklist[i].str);
-        printf("Path %d: %s", i+1, a.trackpath[i].str);
+        printf("Track %d: %s\n", i+1, a.tracklist[i]);
+        printf("Path %d: %s\n", i+1, a.trackpath[i]);
     }
 }
 
-void write_all_albums(struct Album albums[20]) {
+void write_album_menu(struct Album a) {
+    printf("%s - ", a.title);
+    printf("%s - ", a.artist);
+    printf("%s - ", get_genre_name(a.genre));
+    printf("%d Tracks\n", a.tracks);
+}
+
+void write_all_albums() {
     clear_screen();
 
     printf("Imported Albums:\n");
     printf("----------------\n");
 
-    /* for i := 0 to (Length(albums) - 1) do */
-    /* for (int i = 0; i < count; ++i) { */
-    /*     printf("%d: ", i+1); */
-    /*     /1* write_album_menu(albums[i]); *1/ */
-    /* } */
-    printf("%s\n", albums[0].artist.str);
-    getchar();
+    for (int i = 0; i < album_no; ++i) {
+        // Check to see if the title is set.
+        if (albums[i].title[0]) {
+            printf("%d: ", i+1);
+            write_album_menu(albums[i]);
+        }
+    }
+    printf("%d: Back to Menu\n", album_no + 1);
 }
 
 // }}}
 
+// Select Albums {{{
+
+void select_album() {
+    int selection;
+    char command[300];
+
+    clear_screen();
+    write_all_albums();
+    selection = read_integer_range("Select an Album to play: ", 1, album_no+1);
+    clear_screen();
+
+    if (selection != (album_no + 1)) {
+        // Menu
+        printf("> Playing %s by %s, ", albums[selection - 1].tracklist[0], albums[selection - 1].artist);
+        printf("from the album: %s\n", albums[selection - 1].title);
+        printf("   Q+Enter to stop playback.\n");
+        printf("   > to play the next song.\n");
+        printf("   < to play the previous song.\n\n");
+
+        strcpy(command, "mpv --no-video --quiet --load-scripts=no --no-config --loop-playlist ");
+
+        // Append tracks to command.
+        for (int i = 0; i < albums[selection - 1].tracks; ++i) {
+            strcat(command, albums[selection - 1].trackpath[i]);
+            strcat(command, " ");
+        }
+
+        // Supress errors.
+        strcat(command, " 2>/dev/null");
+
+        system(command);
+        getchar();
+    }
+}
+
+// }}}
+
+// Update Albums {{{
+
+void update_album() {
+    int selection, field;
+    my_string new_title, new_artist;
+
+    write_all_albums();
+
+    selection = read_integer_range("Select an Album to update: ", 1, album_no+1);
+
+    if (selection != (album_no + 1)) {
+        clear_screen();
+
+        printf("Update %s information:\n", albums[selection - 1].title);
+        printf("1. Update Title\n");
+        printf("2. Update Artist\n");
+        printf("3. Update Genre\n");
+        printf("4. Back to Menu\n");
+
+        field = read_integer_range("Select a field to update: ", 1, 4);
+
+        switch (field) {
+            case 1:
+                new_title = read_string("Please enter a new Title: ");
+                strcpy(albums[selection - 1].title, new_title.str);
+                break;
+            case 2:
+                new_title = read_string("Please enter a new Artist: ");
+                strcpy(albums[selection - 1].artist, new_artist.str);
+                break;
+            case 3:
+                albums[selection - 1].genre = read_genre();
+                break;
+            case 4:
+                update_album();
+                break;
+        }
+    }
+}
+
+// }}}
 
 // Menus {{{
 
 void main_menu() {
-    struct Album albums[20];
     int selection;
 
     do {
@@ -163,16 +241,17 @@ void main_menu() {
 
         switch (selection) {
             case 1:
-                read_all_albums(albums);
+                read_all_albums();
                 break;
             case 2:
-                write_all_albums(albums);
+                write_all_albums();
+                getchar();
                 break;
             case 3:
-                /* SelectAlbum(Albums); */
+                select_album();
                 break;
             case 4:
-                /* UpdateAlbum(Albums); */
+                update_album();
                 break;
             case 5:
                 break;
