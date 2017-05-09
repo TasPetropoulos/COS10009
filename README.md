@@ -1,3 +1,3 @@
 # COS10009
 
-BA-ICT - Introduction To Programming.
+Swinburne - BA-ICT - Introduction To Programming - COS10009 
